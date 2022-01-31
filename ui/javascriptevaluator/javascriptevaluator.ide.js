@@ -1,20 +1,51 @@
-/* global TW, TWX */
+/* global TW, TWX, require, URL, monaco */
+$("body").append('<script src="https://unpkg.com/monaco-editor@latest/min/vs/loader.js"></script>');
 TW.IDE.Dialogs.JavaScriptEvaluatorCustomEditor = function () {
   var uid = new Date().getTime() + "_" + Math.floor(1000 * Math.random());
   this.title = 'JavaScript Code';
+  var code, editor;
 
   this.renderDialogHtml = function (widgetObj) {
+    code = widgetObj.properties['code'];
     var style = parseFloat(TWX.App.version) <= 9 ? "width:100%;height:100%" : "width:98%;height:96%";
-    var code = widgetObj.properties['code'];
-    var html = "<textarea class='JavaScriptEvaluatorCustomEditor_" + uid + "' style='" + style + ";resize:none;position:absolute;font-size:14px;font-family:monospaced;white-space:nowrap'>" + (code ? code : "") + "</textarea>";
+    var html =
+            "<textarea class='JavaScriptEvaluatorCustomEditor_" + uid + "' style='" + style + ";visibility:hidden;resize:none;position:absolute;font-size:14px;font-family:monospaced;white-space:nowrap'>" + (code ? code : "") + "</textarea>" +
+            "<div id='JavaScriptEvaluatorCustomEditor_" + uid + "' style='" + style + ";resize:none;position:absolute'></div>";
     return html;
   };
 
   this.afterRender = function (domElementId) {
+    try {
+      require.config({paths: {'vs': 'https://unpkg.com/monaco-editor@latest/min/vs'}});
+      window.MonacoEnvironment = {getWorkerUrl: () => proxy};
+
+      var proxy = URL.createObjectURL(new Blob([`
+        self.MonacoEnvironment = {baseUrl: 'https://unpkg.com/monaco-editor@latest/min/'};
+        importScripts('https://unpkg.com/monaco-editor@latest/min/vs/base/worker/workerMain.js');
+      `], {type: 'text/javascript'}));
+
+      require(["vs/editor/editor.main"], function () {
+        try {
+          editor = monaco.editor.create(document.getElementById('JavaScriptEvaluatorCustomEditor_' + uid), {
+            value: code ? code : "",
+            language: 'javascript',
+            theme: 'vs'
+          });
+        } catch (exception) {
+          editor = null;
+          $("#JavaScriptEvaluatorCustomEditor_" + uid).css("visibility", "hidden");
+          $(".JavaScriptEvaluatorCustomEditor_" + uid).css("visibility", "visible");
+        }
+      });
+    } catch (exception) {
+      editor = null;
+      $("#JavaScriptEvaluatorCustomEditor_" + uid).css("visibility", "hidden");
+      $(".JavaScriptEvaluatorCustomEditor_" + uid).css("visibility", "visible");
+    }
   };
 
   this.updateProperties = function (widgetObj) {
-    widgetObj.setProperty('code', $(".JavaScriptEvaluatorCustomEditor_" + uid).val());
+    widgetObj.setProperty('code', editor ? editor.getValue() : $(".JavaScriptEvaluatorCustomEditor_" + uid).val());
     return true;
   };
 };
