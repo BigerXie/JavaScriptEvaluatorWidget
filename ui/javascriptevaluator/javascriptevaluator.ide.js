@@ -7,10 +7,22 @@ TW.IDE.Dialogs.JavaScriptEvaluatorCustomEditor = function () {
 
   this.renderDialogHtml = function (widgetObj) {
     code = widgetObj.properties['code'];
-    var style = parseFloat(TWX.App.version) <= 9 ? "width:100%;height:100%" : "width:98%;height:96%";
+    var inputParameters = this.strToJson(widgetObj.properties['inputParameters']);
+    var htmlParameters = "";
+    for (var key in inputParameters) {
+      htmlParameters += "<span class='JavaScriptEvaluatorCustomEditor_" + uid + "_inputParameter' style='display:block;padding:5px;white-space:nowrap;cursor:pointer' key='" + key + "'><b>" + key + "</b>: " + inputParameters[key] + "</span>";
+    }
+
+    htmlParameters +=
+            "<hr/>" +
+            "<span class='JavaScriptEvaluatorCustomEditor_" + uid + "_result' style='display:block;padding:5px;white-space:nowrap;cursor:pointer'><b>result</b>: " + widgetObj.properties['resultType'] + "</span>";
+
+    var style1 = parseFloat(TWX.App.version) <= 9 ? "width:15%;height:100%" : "width:15%;height:96%";
+    var style2 = parseFloat(TWX.App.version) <= 9 ? "width:84%;height:100%" : "width:82%;height:96%";
     var html =
-            "<textarea class='JavaScriptEvaluatorCustomEditor_" + uid + "' style='" + style + ";visibility:hidden;resize:none;position:absolute;font-size:14px;font-family:monospaced;white-space:nowrap'>" + (code ? code : "") + "</textarea>" +
-            "<div id='JavaScriptEvaluatorCustomEditor_" + uid + "' style='" + style + ";resize:none;position:absolute'></div>";
+            "<div style='" + style1 + ";position:absolute;overflow:auto;border:1px solid gray'>" + htmlParameters + "</div>" +
+            "<textarea class='JavaScriptEvaluatorCustomEditor_" + uid + "' style='" + style2 + ";visibility:hidden;resize:none;position:absolute;left:16%;font-size:14px;font-family:monospaced;white-space:nowrap'>" + (code ? code : "") + "</textarea>" +
+            "<div id='JavaScriptEvaluatorCustomEditor_" + uid + "' style='" + style2 + ";resize:none;position:absolute;left:16%'></div>";
     return html;
   };
 
@@ -29,18 +41,41 @@ TW.IDE.Dialogs.JavaScriptEvaluatorCustomEditor = function () {
           editor = monaco.editor.create(document.getElementById('JavaScriptEvaluatorCustomEditor_' + uid), {
             value: code ? code : "",
             language: 'javascript',
+            scrollBeyondLastLine: false,
             theme: 'vs'
+          });
+
+          $('.JavaScriptEvaluatorCustomEditor_' + uid + '_inputParameter').click(function () {
+            var ops = [];
+            var selections = editor.getSelections();
+            for (var index = 0; index < selections.length; index++) {
+              var id = {major: 1, minor: 1};
+              ops.push({identifier: id, range: selections[index], text: $(this).attr("key"), forceMoveMarkers: true});
+            }
+            editor.executeEdits("my-source", ops);
+          });
+
+          $('.JavaScriptEvaluatorCustomEditor_' + uid + '_result').click(function () {
+            var ops = [];
+            var selections = editor.getSelections();
+            for (var index = 0; index < selections.length; index++) {
+              var id = {major: 1, minor: 1};
+              ops.push({identifier: id, range: selections[index], text: "result", forceMoveMarkers: true});
+            }
+            editor.executeEdits("my-source", ops);
           });
         } catch (exception) {
           editor = null;
           $("#JavaScriptEvaluatorCustomEditor_" + uid).css("visibility", "hidden");
           $(".JavaScriptEvaluatorCustomEditor_" + uid).css("visibility", "visible");
+          setClickForTextArea();
         }
       });
     } catch (exception) {
       editor = null;
       $("#JavaScriptEvaluatorCustomEditor_" + uid).css("visibility", "hidden");
       $(".JavaScriptEvaluatorCustomEditor_" + uid).css("visibility", "visible");
+      setClickForTextArea();
     }
   };
 
@@ -48,6 +83,35 @@ TW.IDE.Dialogs.JavaScriptEvaluatorCustomEditor = function () {
     widgetObj.setProperty('code', editor ? editor.getValue() : $(".JavaScriptEvaluatorCustomEditor_" + uid).val());
     return true;
   };
+
+  this.strToJson = function (value) {
+    if (!value) {
+      value = {};
+    } else if (typeof value === "string") {
+      value = JSON.parse(value);
+    }
+    return value;
+  };
+
+  function setClickForTextArea() {
+    $('.JavaScriptEvaluatorCustomEditor_' + uid + '_inputParameter').click(function () {
+      var txtarea = document.getElementsByClassName("JavaScriptEvaluatorCustomEditor_" + uid)[0];
+
+      txtarea.value =
+              txtarea.value.substring(0, txtarea.selectionStart) +
+              $(this).attr("key") +
+              txtarea.value.substring(txtarea.selectionEnd, txtarea.value.length);
+    });
+
+    $('.JavaScriptEvaluatorCustomEditor_' + uid + '_result').click(function () {
+      var txtarea = document.getElementsByClassName("JavaScriptEvaluatorCustomEditor_" + uid)[0];
+
+      txtarea.value =
+              txtarea.value.substring(0, txtarea.selectionStart) +
+              "result" +
+              txtarea.value.substring(txtarea.selectionEnd, txtarea.value.length);
+    });
+  }
 };
 
 TW.IDE.Widgets.javascriptevaluator = function () {
