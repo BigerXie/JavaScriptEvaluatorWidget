@@ -35,9 +35,9 @@ TW.IDE.Dialogs.JavaScriptEvaluatorCustomEditor = function () {
         window.MonacoEnvironment = {getWorkerUrl: () => proxy};
 
         var proxy = URL.createObjectURL(new Blob([`
-        self.MonacoEnvironment = {baseUrl: 'https://unpkg.com/monaco-editor@latest/min/'};
-        importScripts('https://unpkg.com/monaco-editor@latest/min/vs/base/worker/workerMain.js');
-      `], {type: 'text/javascript'}));
+          self.MonacoEnvironment = {baseUrl: 'https://unpkg.com/monaco-editor@latest/min/'};
+          importScripts('https://unpkg.com/monaco-editor@latest/min/vs/base/worker/workerMain.js');
+        `], {type: 'text/javascript'}));
 
         require(["vs/editor/editor.main"], createEditor);
       }
