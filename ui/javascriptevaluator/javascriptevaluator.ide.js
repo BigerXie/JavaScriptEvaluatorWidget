@@ -28,49 +28,19 @@ TW.IDE.Dialogs.JavaScriptEvaluatorCustomEditor = function () {
 
   this.afterRender = function (domElementId) {
     try {
-      require.config({paths: {'vs': 'https://unpkg.com/monaco-editor@latest/min/vs'}});
-      window.MonacoEnvironment = {getWorkerUrl: () => proxy};
+      if (window.monaco && monaco.editor) {
+        createEditor();
+      } else {
+        require.config({paths: {'vs': 'https://unpkg.com/monaco-editor@latest/min/vs'}});
+        window.MonacoEnvironment = {getWorkerUrl: () => proxy};
 
-      var proxy = URL.createObjectURL(new Blob([`
+        var proxy = URL.createObjectURL(new Blob([`
         self.MonacoEnvironment = {baseUrl: 'https://unpkg.com/monaco-editor@latest/min/'};
         importScripts('https://unpkg.com/monaco-editor@latest/min/vs/base/worker/workerMain.js');
       `], {type: 'text/javascript'}));
 
-      require(["vs/editor/editor.main"], function () {
-        try {
-          editor = monaco.editor.create(document.getElementById('JavaScriptEvaluatorCustomEditor_' + uid), {
-            value: code ? code : "",
-            language: 'javascript',
-            scrollBeyondLastLine: false,
-            theme: 'vs'
-          });
-
-          $('.JavaScriptEvaluatorCustomEditor_' + uid + '_inputParameter').click(function () {
-            var ops = [];
-            var selections = editor.getSelections();
-            for (var index = 0; index < selections.length; index++) {
-              var id = {major: 1, minor: 1};
-              ops.push({identifier: id, range: selections[index], text: $(this).attr("key"), forceMoveMarkers: true});
-            }
-            editor.executeEdits("my-source", ops);
-          });
-
-          $('.JavaScriptEvaluatorCustomEditor_' + uid + '_result').click(function () {
-            var ops = [];
-            var selections = editor.getSelections();
-            for (var index = 0; index < selections.length; index++) {
-              var id = {major: 1, minor: 1};
-              ops.push({identifier: id, range: selections[index], text: "result", forceMoveMarkers: true});
-            }
-            editor.executeEdits("my-source", ops);
-          });
-        } catch (exception) {
-          editor = null;
-          $("#JavaScriptEvaluatorCustomEditor_" + uid).css("visibility", "hidden");
-          $(".JavaScriptEvaluatorCustomEditor_" + uid).css("visibility", "visible");
-          setClickForTextArea();
-        }
-      });
+        require(["vs/editor/editor.main"], createEditor);
+      }
     } catch (exception) {
       editor = null;
       $("#JavaScriptEvaluatorCustomEditor_" + uid).css("visibility", "hidden");
@@ -92,6 +62,42 @@ TW.IDE.Dialogs.JavaScriptEvaluatorCustomEditor = function () {
     }
     return value;
   };
+
+  function createEditor() {
+    try {
+      editor = monaco.editor.create(document.getElementById('JavaScriptEvaluatorCustomEditor_' + uid), {
+        value: code ? code : "",
+        language: 'javascript',
+        scrollBeyondLastLine: false,
+        theme: 'vs'
+      });
+
+      $('.JavaScriptEvaluatorCustomEditor_' + uid + '_inputParameter').click(function () {
+        var ops = [];
+        var selections = editor.getSelections();
+        for (var index = 0; index < selections.length; index++) {
+          var id = {major: 1, minor: 1};
+          ops.push({identifier: id, range: selections[index], text: $(this).attr("key"), forceMoveMarkers: true});
+        }
+        editor.executeEdits("my-source", ops);
+      });
+
+      $('.JavaScriptEvaluatorCustomEditor_' + uid + '_result').click(function () {
+        var ops = [];
+        var selections = editor.getSelections();
+        for (var index = 0; index < selections.length; index++) {
+          var id = {major: 1, minor: 1};
+          ops.push({identifier: id, range: selections[index], text: "result", forceMoveMarkers: true});
+        }
+        editor.executeEdits("my-source", ops);
+      });
+    } catch (exception) {
+      editor = null;
+      $("#JavaScriptEvaluatorCustomEditor_" + uid).css("visibility", "hidden");
+      $(".JavaScriptEvaluatorCustomEditor_" + uid).css("visibility", "visible");
+      setClickForTextArea();
+    }
+  }
 
   function setClickForTextArea() {
     $('.JavaScriptEvaluatorCustomEditor_' + uid + '_inputParameter').click(function () {

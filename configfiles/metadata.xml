@@ -3,7 +3,7 @@
   <ExtensionPackages>
     <ExtensionPackage 
       name="JavaScriptEvaluatorWidget"
-      packageVersion="1.2.13"
+      packageVersion="1.2.15"
       vendor="Accenture Italy - Industry X"
       description="Extension to execute JavaScript code without any restriction"
       minimumThingWorxVersion="8.3.0"
