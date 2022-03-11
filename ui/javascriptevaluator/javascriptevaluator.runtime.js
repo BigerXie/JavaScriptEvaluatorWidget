@@ -36,7 +36,8 @@ TW.Runtime.Widgets.javascriptevaluator = function () {
       for (var key in inputParametersDataShape) {
         variableDefinitions += "var " + key + " = thisWidget.getProperty('" + key + "');";
       }
-      var completeCode = "try {" + variableDefinitions + code + "} catch (exception) {console.log(exception);}";
+      var triggerCustomEvent = 'function triggerCustomEvent() {try {thisWidget.jqElement.triggerHandler("CustomEvent");} catch (exception) {console.log(exception);}};';
+      var completeCode = "try {" + variableDefinitions + triggerCustomEvent + code + "} catch (exception) {console.log(exception);}";
 
       if (debugMode) {
         console.log("JavaScriptEvaluator - evaluate -> Start");

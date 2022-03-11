@@ -17,6 +17,10 @@ TW.IDE.Dialogs.JavaScriptEvaluatorCustomEditor = function () {
             "<hr/>" +
             "<span class='JavaScriptEvaluatorCustomEditor_" + uid + "_result' style='display:block;padding:5px;white-space:nowrap;cursor:pointer'><b>result</b>: " + widgetObj.properties['resultType'] + "</span>";
 
+    htmlParameters +=
+            "<hr/>" +
+            "<span class='JavaScriptEvaluatorCustomEditor_" + uid + "_triggerCustomEvent' style='display:block;padding:5px;white-space:nowrap;cursor:pointer'><b>triggerCustomEvent</b></span>";
+
     var style1 = parseFloat(TWX.App.version) <= 9 ? "width:15%;height:100%" : "width:15%;height:96%";
     var style2 = parseFloat(TWX.App.version) <= 9 ? "width:84%;height:100%" : "width:82%;height:96%";
     var html =
@@ -91,6 +95,16 @@ TW.IDE.Dialogs.JavaScriptEvaluatorCustomEditor = function () {
         }
         editor.executeEdits("my-source", ops);
       });
+      
+      $('.JavaScriptEvaluatorCustomEditor_' + uid + '_triggerCustomEvent').click(function () {
+        var ops = [];
+        var selections = editor.getSelections();
+        for (var index = 0; index < selections.length; index++) {
+          var id = {major: 1, minor: 1};
+          ops.push({identifier: id, range: selections[index], text: "triggerCustomEvent();", forceMoveMarkers: true});
+        }
+        editor.executeEdits("my-source", ops);
+      });
     } catch (exception) {
       editor = null;
       $("#JavaScriptEvaluatorCustomEditor_" + uid).css("visibility", "hidden");
@@ -115,6 +129,15 @@ TW.IDE.Dialogs.JavaScriptEvaluatorCustomEditor = function () {
       txtarea.value =
               txtarea.value.substring(0, txtarea.selectionStart) +
               "result" +
+              txtarea.value.substring(txtarea.selectionEnd, txtarea.value.length);
+    });
+    
+    $('.JavaScriptEvaluatorCustomEditor_' + uid + '_triggerCustomEvent').click(function () {
+      var txtarea = document.getElementsByClassName("JavaScriptEvaluatorCustomEditor_" + uid)[0];
+
+      txtarea.value =
+              txtarea.value.substring(0, txtarea.selectionStart) +
+              "triggerCustomEvent();" +
               txtarea.value.substring(txtarea.selectionEnd, txtarea.value.length);
     });
   }
@@ -190,7 +213,8 @@ TW.IDE.Widgets.javascriptevaluator = function () {
 
   this.widgetEvents = function () {
     return {
-      'Evaluated': {}
+      'Evaluated': {},
+      'CustomEvent': {}
     };
   };
 
