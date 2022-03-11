@@ -95,13 +95,13 @@ TW.IDE.Dialogs.JavaScriptEvaluatorCustomEditor = function () {
         }
         editor.executeEdits("my-source", ops);
       });
-      
+
       $('.JavaScriptEvaluatorCustomEditor_' + uid + '_triggerCustomEvent').click(function () {
         var ops = [];
         var selections = editor.getSelections();
         for (var index = 0; index < selections.length; index++) {
           var id = {major: 1, minor: 1};
-          ops.push({identifier: id, range: selections[index], text: "triggerCustomEvent();", forceMoveMarkers: true});
+          ops.push({identifier: id, range: selections[index], text: "triggerCustomEvent(<INSERT CUSTOM EVENT INDEX HERE>);", forceMoveMarkers: true});
         }
         editor.executeEdits("my-source", ops);
       });
@@ -131,13 +131,13 @@ TW.IDE.Dialogs.JavaScriptEvaluatorCustomEditor = function () {
               "result" +
               txtarea.value.substring(txtarea.selectionEnd, txtarea.value.length);
     });
-    
+
     $('.JavaScriptEvaluatorCustomEditor_' + uid + '_triggerCustomEvent').click(function () {
       var txtarea = document.getElementsByClassName("JavaScriptEvaluatorCustomEditor_" + uid)[0];
 
       txtarea.value =
               txtarea.value.substring(0, txtarea.selectionStart) +
-              "triggerCustomEvent();" +
+              "triggerCustomEvent(<INSERT CUSTOM EVENT INDEX HERE>);" +
               txtarea.value.substring(txtarea.selectionEnd, txtarea.value.length);
     });
   }
@@ -198,6 +198,13 @@ TW.IDE.Widgets.javascriptevaluator = function () {
             {value: 'DATETIME', text: 'DateTime'},
             {value: 'BOOLEAN', text: 'Boolean'}
           ]
+        },
+        'numberOfCustomEvents': {
+          'isVisible': true,
+          'baseType': 'INTEGER',
+          'isEditable': true,
+          'defaultValue': 0,
+          'description': 'The number of custom events'
         }
       }
     };
@@ -213,8 +220,7 @@ TW.IDE.Widgets.javascriptevaluator = function () {
 
   this.widgetEvents = function () {
     return {
-      'Evaluated': {},
-      'CustomEvent': {}
+      'Evaluated': {}
     };
   };
 
@@ -227,6 +233,8 @@ TW.IDE.Widgets.javascriptevaluator = function () {
     this.addNewInputParameters(this.getProperty("inputParameters"));
 
     this.manageResultType();
+
+    this.addNewEventParameters(this.getProperty('numberOfCustomEvents'));
   };
 
   this.afterSetProperty = function (name, value) {
@@ -244,6 +252,9 @@ TW.IDE.Widgets.javascriptevaluator = function () {
       }
     } else if (name === "resultType") {
       this.manageResultType();
+    } else if (name === "numberOfCustomEvents") {
+      this.deleteOldEventParameters();
+      this.addNewEventParameters(value);
     }
 
     return result;
@@ -334,6 +345,33 @@ TW.IDE.Widgets.javascriptevaluator = function () {
         isBindingSource: true,
         baseType: resultType,
         'description': 'The (optional) result of the executed JavaScript code'
+      };
+    }
+
+    this.updatedProperties({
+      updateUI: true
+    });
+  };
+
+  this.deleteOldEventParameters = function () {
+    var properties = this.allWidgetProperties().properties;
+
+    for (var key in properties) {
+      if (key.toLowerCase().startsWith("customevent")) {
+        delete properties[key];
+      }
+    }
+  };
+
+  this.addNewEventParameters = function (numberOfCustomEvents) {
+    var properties = this.allWidgetProperties().properties;
+
+    for (var eventN = 1; eventN <= numberOfCustomEvents; eventN++) {
+      properties['CustomEvent' + eventN] = {
+        name: "CustomEvent" + eventN,
+        type: "event",
+        description: 'CustomEvent N. ' + eventN,
+        isVisible: true
       };
     }
 
