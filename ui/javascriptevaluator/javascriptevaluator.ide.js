@@ -73,7 +73,10 @@ TW.IDE.Dialogs.JavaScriptEvaluatorCustomEditor = function () {
         value: code ? code : "",
         language: 'javascript',
         scrollBeyondLastLine: false,
-        theme: 'vs'
+        theme: 'vs',
+        minimap: {
+          enabled: false
+        }
       });
 
       $('.JavaScriptEvaluatorCustomEditor_' + uid + '_inputParameter').click(function () {
