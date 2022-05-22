@@ -4,7 +4,7 @@
     <ExtensionPackage 
       name="JavaScriptEvaluatorWidget"
       packageVersion="1.4.4"
-      vendor="Accenture Italy - Industry X"
+      vendor="Gianpiero Di Blasi"
       description="Extension to execute JavaScript code without any restriction"
       minimumThingWorxVersion="8.3.0"
       dependsOn=""> 
